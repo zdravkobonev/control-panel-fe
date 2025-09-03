@@ -1,0 +1,397 @@
+import { useMemo, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import {
+  listOrganizations,
+  createOrganization,
+  updateOrganization,
+  deleteOrganization,
+  type Organization,
+} from "../api/organizations";
+import {
+  listRestaurants,
+  createRestaurant,
+  updateRestaurant,
+  deleteRestaurant,
+  type Restaurant,
+  type RestaurantStatus,
+} from "../api/restaurants";
+
+import { Layout, Typography, Button, Space, Card, message, Input } from "antd";
+import { motion } from "framer-motion";
+import {
+  ReloadOutlined,
+  LogoutOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
+import { clearToken } from "../lib/auth";
+import { useNavigate } from "react-router-dom";
+
+import OrganizationsTable from "../components/organizations/OrganizationsTable";
+import OrganizationModal from "../components/organizations/OrganizationModal";
+import RestaurantsTable from "../components/restaurants/RestaurantsTable";
+import RestaurantModal from "../components/restaurants/RestaurantModal";
+
+import { extractErrorMessage } from "../utils/errors";
+
+const { Header, Content } = Layout;
+
+export default function DashboardPage() {
+  const navigate = useNavigate();
+
+  // Queries
+  const {
+    data: orgs,
+    isLoading: isLoadingOrgs,
+    refetch: refetchOrgs,
+  } = useQuery<Organization[]>({
+    queryKey: ["organizations"],
+    queryFn: listOrganizations,
+  });
+
+  const {
+    data: restaurants,
+    isLoading: isLoadingRestaurants,
+    refetch: refetchRestaurants,
+  } = useQuery<Restaurant[]>({
+    queryKey: ["restaurants"],
+    queryFn: () => listRestaurants({ limit: 200 }),
+  });
+
+  // Org mutations
+  const createOrgMut = useMutation({
+    mutationFn: (payload: {
+      name: string;
+      version?: number;
+      status?: Organization["status"];
+    }) => createOrganization(payload),
+    onSuccess: () => {
+      message.success("Организацията е създадена");
+      setOrgModal({ open: false, editing: null });
+      refetchOrgs();
+    },
+    onError: (err) =>
+      message.error(extractErrorMessage(err) || "Неуспешно създаване."),
+  });
+
+  const updateOrgMut = useMutation({
+    mutationFn: (args: {
+      id: number;
+      payload: Partial<Pick<Organization, "name" | "version" | "status">>;
+    }) => updateOrganization(args.id, args.payload),
+    onSuccess: () => {
+      message.success("Организацията е обновена");
+      setOrgModal({ open: false, editing: null });
+      refetchOrgs();
+    },
+    onError: (err) =>
+      message.error(extractErrorMessage(err) || "Неуспешно обновяване."),
+  });
+
+  const deleteOrgMut = useMutation({
+    mutationFn: (id: number) => deleteOrganization(id),
+    onSuccess: () => {
+      message.success("Организацията е изтрита");
+      refetchOrgs();
+    },
+    onError: (err) =>
+      message.error(extractErrorMessage(err) || "Неуспешно изтриване."),
+  });
+
+  // Restaurant mutations
+  const createRestaurantMut = useMutation({
+    mutationFn: (payload: {
+      name: string;
+      organization_id: number;
+      status?: RestaurantStatus;
+      location?: string | null;
+      phone?: string | null;
+    }) => createRestaurant(payload),
+    onSuccess: () => {
+      message.success("Ресторантът е създаден");
+      setRestaurantModal({ open: false, editing: null });
+      refetchRestaurants();
+    },
+    onError: (err) =>
+      message.error(
+        extractErrorMessage(err) || "Неуспешно създаване на ресторант."
+      ),
+  });
+
+  const updateRestaurantMut = useMutation({
+    mutationFn: (args: {
+      id: number;
+      payload: Partial<
+        Pick<Restaurant, "name" | "status" | "location" | "phone">
+      >;
+    }) => updateRestaurant(args.id, args.payload),
+    onSuccess: () => {
+      message.success("Ресторантът е обновен");
+      setRestaurantModal({ open: false, editing: null });
+      refetchRestaurants();
+    },
+    onError: (err) =>
+      message.error(
+        extractErrorMessage(err) || "Неуспешно обновяване на ресторант."
+      ),
+  });
+
+  const deleteRestaurantMut = useMutation({
+    mutationFn: (id: number) => deleteRestaurant(id),
+    onSuccess: () => {
+      message.success("Ресторантът е изтрит");
+      refetchRestaurants();
+    },
+    onError: (err) =>
+      message.error(extractErrorMessage(err) || "Неуспешно изтриване."),
+  });
+
+  // Local UI state
+  const [orgModal, setOrgModal] = useState<{
+    open: boolean;
+    editing: Organization | null;
+  }>({
+    open: false,
+    editing: null,
+  });
+
+  const [restaurantModal, setRestaurantModal] = useState<{
+    open: boolean;
+    editing: Restaurant | null;
+  }>({ open: false, editing: null });
+
+  // Search
+  const [search, setSearch] = useState("");
+  const q = search.trim().toLowerCase();
+
+  const filteredOrgs = useMemo(() => {
+    const list = orgs ?? [];
+    if (!q) return list;
+    return list.filter((o) =>
+      [o.name, o.status, o.id].some((v) => String(v).toLowerCase().includes(q))
+    );
+  }, [orgs, q]);
+
+  const filteredRestaurants = useMemo(() => {
+    const list = restaurants ?? [];
+    if (!q) return list;
+    const orgNameById = new Map((orgs ?? []).map((o) => [o.id, o.name]));
+    return list.filter((r) => {
+      const orgName = orgNameById.get(r.organization_id) ?? "";
+      return [r.name, r.status, r.id, r.organization_id, orgName].some((v) =>
+        String(v).toLowerCase().includes(q)
+      );
+    });
+  }, [restaurants, orgs, q]);
+
+  // Handlers
+  const openCreateOrg = () => setOrgModal({ open: true, editing: null });
+  const openEditOrg = (org: Organization) =>
+    setOrgModal({ open: true, editing: org });
+
+  const submitOrg = (values: {
+    name: string;
+    version?: number;
+    status?: Organization["status"];
+  }) => {
+    if (orgModal.editing) {
+      updateOrgMut.mutate({ id: orgModal.editing.id, payload: values });
+    } else {
+      createOrgMut.mutate(values);
+    }
+  };
+
+  const openCreateRestaurant = () =>
+    setRestaurantModal({ open: true, editing: null });
+  const openEditRestaurant = (r: Restaurant) =>
+    setRestaurantModal({ open: true, editing: r });
+
+  const submitRestaurant = (values: {
+    restaurantName: string;
+    organizationId: number;
+    status?: RestaurantStatus;
+    location?: string | null;
+    phone?: string | null;
+  }) => {
+    if (restaurantModal.editing) {
+      updateRestaurantMut.mutate({
+        id: restaurantModal.editing.id,
+        payload: {
+          name: values.restaurantName,
+          status: values.status,
+          location: values.location ?? null,
+          phone: values.phone ?? null,
+        },
+      });
+    } else {
+      createRestaurantMut.mutate({
+        name: values.restaurantName,
+        organization_id: values.organizationId,
+        status: values.status,
+        location: values.location ?? null,
+        phone: values.phone ?? null,
+      });
+    }
+  };
+
+  function logout() {
+    clearToken();
+    message.info("Излязохте.");
+    navigate("/login", { replace: true });
+  }
+
+  return (
+    <Layout className="min-h-screen bg-gray-50">
+      <Header className="relative overflow-hidden !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-cyan-500 px-4 py-3">
+        <div className="relative z-10 flex items-center justify-between">
+          <Typography.Title
+            level={4}
+            className="!mb-0 bg-gradient-to-r !from-white !via-white !to-white/80 !bg-clip-text !text-transparent"
+          >
+            Control Panel - Unrealsoft
+          </Typography.Title>
+
+          <Space>
+            <motion.div whileTap={{ scale: 0.98 }}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => {
+                  refetchOrgs();
+                  refetchRestaurants();
+                }}
+                className="!text-white !border-0 !bg-white/20 hover:!bg-white/30"
+              >
+                Рефреш
+              </Button>
+            </motion.div>
+
+            <motion.div whileTap={{ scale: 0.98 }}>
+              <Button
+                icon={<LogoutOutlined />}
+                onClick={logout}
+                className="!text-white !border-0 !bg-white/20 hover:!bg-white/30"
+              >
+                Изход
+              </Button>
+            </motion.div>
+          </Space>
+        </div>
+      </Header>
+
+      <Content className="p-4">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            {/* Лента с търсачка и бутони */}
+            <div className="m-3 flex flex-wrap items-center justify-between gap-3">
+              <Input.Search
+                allowClear
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Търси в организации и ресторанти…"
+                style={{ maxWidth: 420 }}
+              />
+
+              <div className="flex items-center gap-3">
+                <motion.div whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={openCreateOrg}
+                    icon={<PlusOutlined />}
+                    className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
+                  >
+                    Създай организация
+                  </Button>
+                </motion.div>
+
+                <motion.div whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={openCreateRestaurant}
+                    icon={<PlusOutlined />}
+                    disabled={!orgs?.length}
+                    className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
+                  >
+                    Създай ресторант
+                  </Button>
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Отстояние между картите */}
+            <Space direction="vertical" size="large" style={{ width: "100%" }}>
+              <Card
+                title="Организации"
+                className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
+              >
+                <OrganizationsTable
+                  data={filteredOrgs}
+                  loading={isLoadingOrgs}
+                  onEdit={openEditOrg}
+                  onDelete={(id) => deleteOrgMut.mutate(id)}
+                />
+              </Card>
+
+              <Card
+                title="Ресторанти"
+                className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
+              >
+                <RestaurantsTable
+                  data={filteredRestaurants}
+                  loading={isLoadingRestaurants}
+                  orgs={orgs}
+                  onEdit={openEditRestaurant}
+                  onDelete={(id) => deleteRestaurantMut.mutate(id)}
+                />
+              </Card>
+            </Space>
+          </motion.div>
+        </div>
+      </Content>
+
+      {/* Modals */}
+      <OrganizationModal
+        open={orgModal.open}
+        isEdit={!!orgModal.editing}
+        loading={createOrgMut.isPending || updateOrgMut.isPending}
+        initial={
+          orgModal.editing
+            ? {
+                name: orgModal.editing.name,
+                version: orgModal.editing.version,
+                status: orgModal.editing.status,
+              }
+            : { version: 1 }
+        }
+        onCancel={() => {
+          setOrgModal({ open: false, editing: null });
+        }}
+        onSubmit={submitOrg}
+      />
+
+      <RestaurantModal
+        open={restaurantModal.open}
+        isEdit={!!restaurantModal.editing}
+        loading={createRestaurantMut.isPending || updateRestaurantMut.isPending}
+        initial={
+          restaurantModal.editing
+            ? {
+                id: restaurantModal.editing.id,
+                name: restaurantModal.editing.name,
+                organization_id: restaurantModal.editing.organization_id,
+                status: restaurantModal.editing.status,
+                location: restaurantModal.editing.location,
+                phone: restaurantModal.editing.phone,
+              }
+            : null
+        }
+        orgs={orgs ?? []}
+        orgsLoading={isLoadingOrgs}
+        onCancel={() => {
+          setRestaurantModal({ open: false, editing: null });
+        }}
+        onSubmit={submitRestaurant}
+      />
+    </Layout>
+  );
+}
