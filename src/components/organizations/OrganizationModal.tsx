@@ -68,8 +68,18 @@ export default function OrganizationModal({
           <Input placeholder="Пример: Unrealsoft Ltd." />
         </Form.Item>
 
-        <Form.Item name="version" label="Версия">
-          <Input type="number" min={1} inputMode="numeric" />
+        <Form.Item
+          name="version"
+          label="Версия"
+          rules={[
+            { required: true, message: "Въведете версия" },
+            {
+              pattern: /^\d+\.\d+\.\d+$/,
+              message: "Версията трябва да е във формат X.Y.Z (например 1.0.0)",
+            },
+          ]}
+        >
+          <Input placeholder="Напр. 1.0.0" />
         </Form.Item>
       </Form>
     </Modal>
