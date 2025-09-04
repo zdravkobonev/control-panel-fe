@@ -61,7 +61,7 @@ export default function DashboardPage() {
   const createOrgMut = useMutation({
     mutationFn: (payload: {
       name: string;
-      version?: number;
+      version?: string;
       status?: Organization["status"];
     }) => createOrganization(payload),
     onSuccess: () => {
@@ -190,7 +190,7 @@ export default function DashboardPage() {
 
   const submitOrg = (values: {
     name: string;
-    version?: number;
+    version?: string;
     status?: Organization["status"];
   }) => {
     if (orgModal.editing) {
@@ -361,7 +361,7 @@ export default function DashboardPage() {
                 version: orgModal.editing.version,
                 status: orgModal.editing.status,
               }
-            : { version: 1 }
+            : { version: "0.10.1" }
         }
         onCancel={() => {
           setOrgModal({ open: false, editing: null });

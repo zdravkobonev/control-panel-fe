@@ -10,7 +10,7 @@ type Props = {
   onCancel: () => void;
   onSubmit: (values: {
     name: string;
-    version?: number;
+    version?: string; // <-- string, не number
     status?: Organization["status"];
   }) => void;
 };
@@ -26,11 +26,22 @@ export default function OrganizationModal({
   const [form] = Form.useForm();
 
   useEffect(() => {
-    if (open) {
-      form.resetFields();
-      form.setFieldsValue(initial ?? { version: 1 });
+    if (!open) return;
+    form.resetFields();
+
+    if (isEdit && initial) {
+      // За редакция – попълни подадените стойности
+      form.setFieldsValue({
+        ...initial,
+        // Ако бекендът дава number, го превърни в string
+        version:
+          initial.version !== undefined ? String(initial.version) : undefined,
+      });
+    } else {
+      // За създаване – дай дефолтна семантична версия
+      form.setFieldsValue({ version: "0.10.0" });
     }
-  }, [open, initial, form]);
+  }, [open, initial, isEdit, form]);
 
   return (
     <Modal
@@ -79,7 +90,7 @@ export default function OrganizationModal({
             },
           ]}
         >
-          <Input placeholder="Напр. 1.0.0" />
+          <Input placeholder="Напр. 0.10.0" />
         </Form.Item>
       </Form>
     </Modal>

@@ -4,7 +4,7 @@ import { api } from "./client";
 export type Organization = {
   id: number;
   name: string;
-  version: number;
+  version: string;
   status: "pending" | "active" | "suspended" | "deleted";
   created_at: string;
 };
@@ -18,7 +18,7 @@ export async function listOrganizations() {
 // CREATE
 export async function createOrganization(payload: {
   name: string;
-  version?: number;
+  version?: string;
   status?: Organization["status"];
 }) {
   const { data } = await api.post<Organization>("/organizations", payload);
