@@ -26,6 +26,20 @@ export default function OrganizationsTable({
       columns={[
         { title: "Ид", dataIndex: "id", width: 80 },
         { title: "Име на организация", dataIndex: "name" },
+        {
+          title: "Име на организация",
+          dataIndex: "name",
+          render: (name: string) => (
+            <a
+              href={`http://${name}-fe.127.0.0.1.nip.io`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-blue-600 hover:text-blue-800"
+            >
+              {name}
+            </a>
+          ),
+        },
         { title: "Версия", dataIndex: "version", width: 100 },
         {
           title: "Статус",
