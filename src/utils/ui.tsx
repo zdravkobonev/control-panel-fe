@@ -6,8 +6,10 @@ export function StatusTag({ value }: { value: string }) {
       ? "green"
       : value === "pending"
       ? "gold"
+      : value === "error"
+      ? "red"
       : value === "suspended"
-      ? "blue"
+      ? "gray"
       : "red";
   return <Tag color={color}>{value.toUpperCase()}</Tag>;
 }
