@@ -28,6 +28,7 @@ export default function RestaurantsTable({
       columns={[
         { title: "Ид", dataIndex: "id", width: 80 },
         { title: "Име на ресторанта", dataIndex: "name" },
+        { title: "Версия", dataIndex: "version", width: 100 },
         {
           title: "Организация (ID)",
           dataIndex: "organization_id",

@@ -33,17 +33,22 @@ export default function RestaurantModal({
   const [form] = Form.useForm();
 
   useEffect(() => {
-    if (open) {
-      form.resetFields();
+    if (!open) return;
+    form.resetFields();
+    if (isEdit && initial) {
       form.setFieldsValue({
         restaurantName: initial?.name,
         organizationId: initial?.organization_id,
         status: initial?.status,
         location: initial?.location ?? undefined,
         phone: initial?.phone ?? undefined,
+        version:
+          initial?.version !== undefined ? String(initial.version) : undefined,
       });
+    } else {
+      form.setFieldsValue({ version: "0.0.1" });
     }
-  }, [open, initial, form]);
+  }, [open, initial, isEdit, form]);
 
   return (
     <Modal
@@ -79,6 +84,20 @@ export default function RestaurantModal({
           rules={[{ required: true, message: "Въведете име на ресторанта" }]}
         >
           <Input placeholder="Пример: Bistro Unreal" />
+        </Form.Item>
+
+        <Form.Item
+          name="version"
+          label="Версия"
+          rules={[
+            { required: true, message: "Въведете версия" },
+            {
+              pattern: /^\d+\.\d+\.\d+$/,
+              message: "Версията трябва да е във формат X.Y.Z (например 0.0.1)",
+            },
+          ]}
+        >
+          <Input placeholder="Напр. 0.0.1" />
         </Form.Item>
 
         <Form.Item

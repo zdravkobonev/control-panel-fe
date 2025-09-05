@@ -7,6 +7,7 @@ export type Restaurant = {
   id: number;
   name: string;
   organization_id: number;
+  version: string;
   status: RestaurantStatus;
   location?: string | null;
   phone?: string | null;
@@ -43,6 +44,7 @@ export async function createRestaurant(payload: {
   name: string;
   organization_id: number;
   status?: RestaurantStatus; // по бекенд default: pending
+  version?: string;
   location?: string | null;
   phone?: string | null;
 }) {
@@ -53,7 +55,9 @@ export async function createRestaurant(payload: {
 // UPDATE (partial/PATCH)
 export async function updateRestaurant(
   id: number,
-  payload: Partial<Pick<Restaurant, "name" | "status" | "location" | "phone">>
+  payload: Partial<
+    Pick<Restaurant, "name" | "status" | "location" | "phone" | "version">
+  >
 ) {
   const { data } = await api.patch<Restaurant>(`/restaurants/${id}`, payload);
   return data;
