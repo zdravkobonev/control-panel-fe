@@ -160,28 +160,33 @@ export default function DashboardPage() {
   }>({ open: false, editing: null });
 
   // Search
-  const [search, setSearch] = useState("");
-  const q = search.trim().toLowerCase();
+  const [organizationSearch, setOrganizationSearch] = useState("");
+  const orgQ = organizationSearch.trim().toLowerCase();
+
+  const [restaurantSearch, setRestaurantSearch] = useState("");
+  const restQ = restaurantSearch.trim().toLowerCase();
 
   const filteredOrgs = useMemo(() => {
     const list = orgs ?? [];
-    if (!q) return list;
+    if (!orgQ) return list;
     return list.filter((o) =>
-      [o.name, o.status, o.id].some((v) => String(v).toLowerCase().includes(q))
+      [o.name, o.status, o.id].some((v) =>
+        String(v).toLowerCase().includes(orgQ)
+      )
     );
-  }, [orgs, q]);
+  }, [orgs, orgQ]);
 
   const filteredRestaurants = useMemo(() => {
     const list = restaurants ?? [];
-    if (!q) return list;
+    if (!restQ) return list;
     const orgNameById = new Map((orgs ?? []).map((o) => [o.id, o.name]));
     return list.filter((r) => {
       const orgName = orgNameById.get(r.organization_id) ?? "";
       return [r.name, r.status, r.id, r.organization_id, orgName].some((v) =>
-        String(v).toLowerCase().includes(q)
+        String(v).toLowerCase().includes(restQ)
       );
     });
-  }, [restaurants, orgs, q]);
+  }, [restaurants, orgs, restQ]);
 
   // Handlers
   const openCreateOrg = () => setOrgModal({ open: true, editing: null });
@@ -284,66 +289,81 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            {/* Лента с търсачка и бутони */}
-            <div className="m-3 flex flex-wrap items-center justify-between gap-3">
-              <Input.Search
-                allowClear
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Търси в организации и ресторанти…"
-                style={{ maxWidth: 420 }}
-              />
-
-              <div className="flex items-center gap-3">
-                <motion.div whileTap={{ scale: 0.98 }}>
-                  <Button
-                    onClick={openCreateOrg}
-                    icon={<PlusOutlined />}
-                    className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
-                  >
-                    Създай организация
-                  </Button>
-                </motion.div>
-
-                <motion.div whileTap={{ scale: 0.98 }}>
-                  <Button
-                    onClick={openCreateRestaurant}
-                    icon={<PlusOutlined />}
-                    disabled={!orgs?.length}
-                    className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
-                  >
-                    Създай ресторант
-                  </Button>
-                </motion.div>
-              </div>
-            </div>
-
             {/* Отстояние между картите */}
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
-              <Card
-                title="Организации"
-                className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
-              >
-                <OrganizationsTable
-                  data={filteredOrgs}
-                  loading={isLoadingOrgs}
-                  onEdit={openEditOrg}
-                  onDelete={(id) => deleteOrgMut.mutate(id)}
-                />
-              </Card>
+              {/* Лента с търсачка и бутони */}
+              <div>
+                <div className="m-3 flex flex-wrap items-center justify-between gap-3">
+                  <Input.Search
+                    allowClear
+                    value={organizationSearch}
+                    onChange={(e) => setOrganizationSearch(e.target.value)}
+                    placeholder="Търси в организации..."
+                    style={{ maxWidth: 420 }}
+                  />
 
-              <Card
-                title="Ресторанти"
-                className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
-              >
-                <RestaurantsTable
-                  data={filteredRestaurants}
-                  loading={isLoadingRestaurants}
-                  orgs={orgs}
-                  onEdit={openEditRestaurant}
-                  onDelete={(id) => deleteRestaurantMut.mutate(id)}
-                />
-              </Card>
+                  <div className="flex items-center">
+                    <motion.div whileTap={{ scale: 0.98 }}>
+                      <Button
+                        onClick={openCreateOrg}
+                        icon={<PlusOutlined />}
+                        className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
+                      >
+                        Създай организация
+                      </Button>
+                    </motion.div>
+                  </div>
+                </div>
+                <Card
+                  title="Организации"
+                  className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
+                >
+                  <OrganizationsTable
+                    data={filteredOrgs}
+                    loading={isLoadingOrgs}
+                    onEdit={openEditOrg}
+                    onDelete={(id) => deleteOrgMut.mutate(id)}
+                  />
+                </Card>
+              </div>
+
+              <div>
+                {/* Лента с търсачка и бутони */}
+                <div className="m-3 flex flex-wrap items-center justify-between gap-3">
+                  <Input.Search
+                    allowClear
+                    value={restaurantSearch}
+                    onChange={(e) => setRestaurantSearch(e.target.value)}
+                    placeholder="Търси в ресторанти…"
+                    style={{ maxWidth: 420 }}
+                  />
+
+                  <div className="flex items-center gap-3">
+                    <motion.div whileTap={{ scale: 0.98 }}>
+                      <Button
+                        onClick={openCreateRestaurant}
+                        icon={<PlusOutlined />}
+                        disabled={!orgs?.length}
+                        className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
+                      >
+                        Създай ресторант
+                      </Button>
+                    </motion.div>
+                  </div>
+                </div>
+                <Card
+                  title="Ресторанти"
+                  className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
+                >
+                  <RestaurantsTable
+                    data={filteredRestaurants}
+                    loading={isLoadingRestaurants}
+                    orgs={orgs}
+                    onEdit={openEditRestaurant}
+                    onDelete={(id) => deleteRestaurantMut.mutate(id)}
+                  />
+                </Card>
+              </div>
             </Space>
           </motion.div>
         </div>
