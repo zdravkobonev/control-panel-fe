@@ -16,7 +16,16 @@ import {
   type RestaurantStatus,
 } from "../api/restaurants";
 
-import { Layout, Typography, Button, Space, Card, message, Input } from "antd";
+import {
+  Layout,
+  Typography,
+  Button,
+  Space,
+  Card,
+  message,
+  Input,
+  Tabs,
+} from "antd";
 import { motion } from "framer-motion";
 import {
   ReloadOutlined,
@@ -244,6 +253,9 @@ export default function DashboardPage() {
     navigate("/login", { replace: true });
   }
 
+  // optional: контролирай активния таб (ако решиш да променяш поведението на “Рефреш” според таба)
+  // const [activeTab, setActiveTab] = useState<string>("orgs");
+
   return (
     <Layout className="min-h-screen bg-gray-50">
       <Header className="relative overflow-hidden !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-cyan-500 px-4 py-3">
@@ -260,6 +272,8 @@ export default function DashboardPage() {
               <Button
                 icon={<ReloadOutlined />}
                 onClick={() => {
+                  // ако искаш само активния таб да рефрешва,
+                  // провери activeTab и извикай съответния refetch
                   refetchOrgs();
                   refetchRestaurants();
                 }}
@@ -289,82 +303,106 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            {/* Отстояние между картите */}
-            <Space direction="vertical" size="large" style={{ width: "100%" }}>
-              {/* Лента с търсачка и бутони */}
-              <div>
-                <div className="m-3 flex flex-wrap items-center justify-between gap-3">
-                  <Input.Search
-                    allowClear
-                    value={organizationSearch}
-                    onChange={(e) => setOrganizationSearch(e.target.value)}
-                    placeholder="Търси в организации..."
-                    style={{ maxWidth: 420 }}
-                  />
+            <Tabs
+              defaultActiveKey="orgs"
+              centered
+              items={[
+                {
+                  key: "orgs",
+                  label: `Организации (${orgs?.length ?? 0})`,
+                  children: (
+                    <Space
+                      direction="vertical"
+                      size="large"
+                      style={{ width: "100%" }}
+                    >
+                      <div className="flex flex-wrap items-center justify-between">
+                        <Input.Search
+                          allowClear
+                          value={organizationSearch}
+                          onChange={(e) =>
+                            setOrganizationSearch(e.target.value)
+                          }
+                          placeholder="Търси в организации..."
+                          style={{ maxWidth: 420 }}
+                        />
 
-                  <div className="flex items-center">
-                    <motion.div whileTap={{ scale: 0.98 }}>
-                      <Button
-                        onClick={openCreateOrg}
-                        icon={<PlusOutlined />}
-                        className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
+                        <div className="flex items-center">
+                          <motion.div whileTap={{ scale: 0.98 }}>
+                            <Button
+                              onClick={openCreateOrg}
+                              icon={<PlusOutlined />}
+                              className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
+                            >
+                              Създай организация
+                            </Button>
+                          </motion.div>
+                        </div>
+                      </div>
+
+                      <Card
+                        title="Организации"
+                        className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
                       >
-                        Създай организация
-                      </Button>
-                    </motion.div>
-                  </div>
-                </div>
-                <Card
-                  title="Организации"
-                  className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
-                >
-                  <OrganizationsTable
-                    data={filteredOrgs}
-                    loading={isLoadingOrgs}
-                    onEdit={openEditOrg}
-                    onDelete={(id) => deleteOrgMut.mutate(id)}
-                  />
-                </Card>
-              </div>
+                        <OrganizationsTable
+                          data={filteredOrgs}
+                          loading={isLoadingOrgs}
+                          onEdit={openEditOrg}
+                          onDelete={(id) => deleteOrgMut.mutate(id)}
+                        />
+                      </Card>
+                    </Space>
+                  ),
+                },
+                {
+                  key: "rests",
+                  label: `Ресторанти (${restaurants?.length ?? 0})`,
+                  children: (
+                    <Space
+                      direction="vertical"
+                      size="large"
+                      style={{ width: "100%" }}
+                    >
+                      <div className="flex flex-wrap items-center justify-between">
+                        <Input.Search
+                          allowClear
+                          value={restaurantSearch}
+                          onChange={(e) => setRestaurantSearch(e.target.value)}
+                          placeholder="Търси в ресторанти…"
+                          style={{ maxWidth: 420 }}
+                        />
 
-              <div>
-                {/* Лента с търсачка и бутони */}
-                <div className="m-3 flex flex-wrap items-center justify-between gap-3">
-                  <Input.Search
-                    allowClear
-                    value={restaurantSearch}
-                    onChange={(e) => setRestaurantSearch(e.target.value)}
-                    placeholder="Търси в ресторанти…"
-                    style={{ maxWidth: 420 }}
-                  />
+                        <div className="flex items-center">
+                          <motion.div whileTap={{ scale: 0.98 }}>
+                            <Button
+                              onClick={openCreateRestaurant}
+                              icon={<PlusOutlined />}
+                              disabled={!orgs?.length}
+                              className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
+                            >
+                              Създай ресторант
+                            </Button>
+                          </motion.div>
+                        </div>
+                      </div>
 
-                  <div className="flex items-center gap-3">
-                    <motion.div whileTap={{ scale: 0.98 }}>
-                      <Button
-                        onClick={openCreateRestaurant}
-                        icon={<PlusOutlined />}
-                        disabled={!orgs?.length}
-                        className="!text-white !border-0 !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-sky-500 hover:opacity-90"
+                      <Card
+                        title="Ресторанти"
+                        className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
                       >
-                        Създай ресторант
-                      </Button>
-                    </motion.div>
-                  </div>
-                </div>
-                <Card
-                  title="Ресторанти"
-                  className="backdrop-blur-md !bg-white/80 !shadow-xl !border-0 !rounded-2xl"
-                >
-                  <RestaurantsTable
-                    data={filteredRestaurants}
-                    loading={isLoadingRestaurants}
-                    orgs={orgs}
-                    onEdit={openEditRestaurant}
-                    onDelete={(id) => deleteRestaurantMut.mutate(id)}
-                  />
-                </Card>
-              </div>
-            </Space>
+                        <RestaurantsTable
+                          data={filteredRestaurants}
+                          loading={isLoadingRestaurants}
+                          orgs={orgs}
+                          onEdit={openEditRestaurant}
+                          onDelete={(id) => deleteRestaurantMut.mutate(id)}
+                        />
+                      </Card>
+                    </Space>
+                  ),
+                },
+              ]}
+            />
           </motion.div>
         </div>
       </Content>
