@@ -76,7 +76,7 @@ export default function OrganizationModal({
           label="Име"
           rules={[{ required: true, message: "Въведете име" }]}
         >
-          <Input placeholder="Пример: Unrealsoft Ltd." />
+          <Input placeholder="Пример: Unrealsoft Ltd." disabled={!!isEdit} />
         </Form.Item>
 
         <Form.Item

@@ -83,7 +83,7 @@ export default function RestaurantModal({
           label="Име на ресторанта"
           rules={[{ required: true, message: "Въведете име на ресторанта" }]}
         >
-          <Input placeholder="Пример: Bistro Unreal" />
+          <Input placeholder="Пример: Bistro Unreal" disabled={!!isEdit} />
         </Form.Item>
 
         <Form.Item
