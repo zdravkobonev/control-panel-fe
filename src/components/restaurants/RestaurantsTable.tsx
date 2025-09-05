@@ -26,28 +26,42 @@ export default function RestaurantsTable({
       dataSource={data ?? []}
       pagination={{ pageSize: 10 }}
       columns={[
-        { title: "Ид", dataIndex: "id", width: 80 },
-        { title: "Име на ресторанта", dataIndex: "name" },
-        { title: "Версия", dataIndex: "version", width: 100 },
+        { title: "Ид", dataIndex: "id", width: "10%" },
+        {
+          title: "Име на ресторанта",
+          dataIndex: "name",
+          width: "25%",
+          render: (name: string) => (
+            <a
+              href={`http://restaurant-${name}-fe.127.0.0.1.nip.io`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-blue-600 hover:text-blue-800"
+            >
+              {name}
+            </a>
+          ),
+        },
         {
           title: "Организация (ID)",
           dataIndex: "organization_id",
-          width: 200,
+          width: "25%",
           render: (id: number) => {
             const org = orgs?.find((o) => o.id === id);
             return org ? `${org.name} (ID: ${id})` : `ID: ${id}`;
           },
         },
+        { title: "Версия", dataIndex: "version", width: "10%" },
         {
           title: "Статус",
           dataIndex: "status",
-          width: 140,
+          width: "10%",
           render: (s: RestaurantStatus) => <StatusTag value={s} />,
         },
         {
           title: "Действия",
           key: "actions",
-          width: 160,
+          width: "10%",
           render: (_: unknown, record: Restaurant) => (
             <Space>
               <Button

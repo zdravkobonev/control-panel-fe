@@ -24,11 +24,12 @@ export default function OrganizationsTable({
       pagination={{ pageSize: 10 }}
       className="[&_.ant-table-thead_th]:!bg-transparent [&_.ant-table-thead_th]:!font-semibold"
       columns={[
-        { title: "Ид", dataIndex: "id", width: 80 },
-        { title: "Име на организация", dataIndex: "name" },
+        { title: "Ид", dataIndex: "id", width: "10%" },
+        // { title: "Име на организация", dataIndex: "name" },
         {
           title: "Име на организация",
           dataIndex: "name",
+          width: "40%",
           render: (name: string) => (
             <a
               href={`http://${name}-fe.127.0.0.1.nip.io`}
@@ -40,17 +41,17 @@ export default function OrganizationsTable({
             </a>
           ),
         },
-        { title: "Версия", dataIndex: "version", width: 100 },
+        { title: "Версия", dataIndex: "version", width: "10%" },
         {
           title: "Статус",
           dataIndex: "status",
-          width: 140,
+          width: "10%",
           render: (s: Organization["status"]) => <StatusTag value={s} />,
         },
         {
           title: "Действия",
           key: "actions",
-          width: 140,
+          width: "10%",
           render: (_: unknown, record: Organization) => (
             <Space>
               <Button
