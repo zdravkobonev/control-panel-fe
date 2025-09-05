@@ -13,6 +13,7 @@ type Props = {
   onCancel: () => void;
   onSubmit: (values: {
     restaurantName: string;
+    version?: string;
     organizationId: number;
     status?: RestaurantStatus;
     location?: string | null;

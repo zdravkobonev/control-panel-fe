@@ -112,6 +112,7 @@ export default function DashboardPage() {
       name: string;
       organization_id: number;
       status?: RestaurantStatus;
+      version?: string;
       location?: string | null;
       phone?: string | null;
     }) => createRestaurant(payload),
@@ -130,7 +131,7 @@ export default function DashboardPage() {
     mutationFn: (args: {
       id: number;
       payload: Partial<
-        Pick<Restaurant, "name" | "status" | "location" | "phone">
+        Pick<Restaurant, "name" | "status" | "location" | "phone" | "version">
       >;
     }) => updateRestaurant(args.id, args.payload),
     onSuccess: () => {
@@ -221,6 +222,7 @@ export default function DashboardPage() {
 
   const submitRestaurant = (values: {
     restaurantName: string;
+    version?: string;
     organizationId: number;
     status?: RestaurantStatus;
     location?: string | null;
@@ -232,6 +234,7 @@ export default function DashboardPage() {
         payload: {
           name: values.restaurantName,
           status: values.status,
+          version: values.version,
           location: values.location ?? null,
           phone: values.phone ?? null,
         },
@@ -241,6 +244,7 @@ export default function DashboardPage() {
         name: values.restaurantName,
         organization_id: values.organizationId,
         status: values.status,
+        version: values.version,
         location: values.location ?? null,
         phone: values.phone ?? null,
       });
