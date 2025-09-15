@@ -46,6 +46,7 @@ const { Header, Content } = Layout;
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const [messageApi, contextHolder] = message.useMessage();
 
   // Queries
   const {
@@ -74,12 +75,12 @@ export default function DashboardPage() {
       status?: Organization["status"];
     }) => createOrganization(payload),
     onSuccess: () => {
-      message.success("Организацията е създадена");
+      messageApi.success("Организацията е създадена");
       setOrgModal({ open: false, editing: null });
       refetchOrgs();
     },
     onError: (err) =>
-      message.error(extractErrorMessage(err) || "Неуспешно създаване."),
+      messageApi.error(extractErrorMessage(err) || "Неуспешно създаване."),
   });
 
   const updateOrgMut = useMutation({
@@ -88,22 +89,22 @@ export default function DashboardPage() {
       payload: Partial<Pick<Organization, "name" | "version" | "status">>;
     }) => updateOrganization(args.id, args.payload),
     onSuccess: () => {
-      message.success("Организацията е обновена");
+      messageApi.success("Организацията е обновена");
       setOrgModal({ open: false, editing: null });
       refetchOrgs();
     },
     onError: (err) =>
-      message.error(extractErrorMessage(err) || "Неуспешно обновяване."),
+      messageApi.error(extractErrorMessage(err) || "Неуспешно обновяване."),
   });
 
   const deleteOrgMut = useMutation({
     mutationFn: (id: number) => deleteOrganization(id),
     onSuccess: () => {
-      message.success("Организацията е изтрита");
+      messageApi.success("Организацията е изтрита");
       refetchOrgs();
     },
     onError: (err) =>
-      message.error(extractErrorMessage(err) || "Неуспешно изтриване."),
+      messageApi.error(extractErrorMessage(err) || "Неуспешно изтриване."),
   });
 
   // Restaurant mutations
@@ -117,12 +118,12 @@ export default function DashboardPage() {
       phone?: string | null;
     }) => createRestaurant(payload),
     onSuccess: () => {
-      message.success("Ресторантът е създаден");
+      messageApi.success("Ресторантът е създаден");
       setRestaurantModal({ open: false, editing: null });
       refetchRestaurants();
     },
     onError: (err) =>
-      message.error(
+      messageApi.error(
         extractErrorMessage(err) || "Неуспешно създаване на ресторант."
       ),
   });
@@ -135,12 +136,12 @@ export default function DashboardPage() {
       >;
     }) => updateRestaurant(args.id, args.payload),
     onSuccess: () => {
-      message.success("Ресторантът е обновен");
+      messageApi.success("Ресторантът е обновен");
       setRestaurantModal({ open: false, editing: null });
       refetchRestaurants();
     },
     onError: (err) =>
-      message.error(
+      messageApi.error(
         extractErrorMessage(err) || "Неуспешно обновяване на ресторант."
       ),
   });
@@ -148,11 +149,11 @@ export default function DashboardPage() {
   const deleteRestaurantMut = useMutation({
     mutationFn: (id: number) => deleteRestaurant(id),
     onSuccess: () => {
-      message.success("Ресторантът е изтрит");
+      messageApi.success("Ресторантът е изтрит");
       refetchRestaurants();
     },
     onError: (err) =>
-      message.error(extractErrorMessage(err) || "Неуспешно изтриване."),
+      messageApi.error(extractErrorMessage(err) || "Неуспешно изтриване."),
   });
 
   // Local UI state
@@ -253,7 +254,6 @@ export default function DashboardPage() {
 
   function logout() {
     clearToken();
-    message.info("Излязохте.");
     navigate("/login", { replace: true });
   }
 
@@ -262,6 +262,7 @@ export default function DashboardPage() {
 
   return (
     <Layout className="min-h-screen bg-gray-50">
+      {contextHolder}
       <Header className="relative overflow-hidden !bg-gradient-to-r !from-blue-600 !via-sky-600 !to-cyan-500 px-4 py-3">
         <div className="relative z-10 flex items-center justify-between">
           <Typography.Title
